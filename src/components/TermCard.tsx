@@ -1,4 +1,5 @@
 import type { TermView } from '../types'
+import { SpeakButton } from './SpeakButton'
 
 export const CATEGORY_STYLE: Record<string, string> = {
   前端: 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300',
@@ -17,6 +18,9 @@ export const CATEGORY_STYLE: Record<string, string> = {
   网站: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
   本地部署: 'bg-stone-100 text-stone-700 dark:bg-stone-500/15 dark:text-stone-300',
   云端部署: 'bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300',
+  游戏: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-300',
+  终端: 'bg-zinc-200 text-zinc-700 dark:bg-zinc-500/20 dark:text-zinc-300',
+  环境: 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300',
 }
 
 export const MASTERY_LABEL = ['生疏', '见过', '掌握'] as const
@@ -41,6 +45,7 @@ export function TermCard({ term, onClick }: { term: TermView; onClick: () => voi
             <span className="font-semibold text-[15px] text-slate-900 dark:text-slate-100 truncate">
               {term.en}
             </span>
+            <SpeakButton text={term.en} size={13} />
             {term.starred && <span className="text-amber-400 text-sm">★</span>}
           </div>
           <div className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">{term.zh}</div>
@@ -86,6 +91,7 @@ export function TermCardCompact({ term, onClick }: { term: TermView; onClick: ()
         <span className="font-medium text-[13px] text-slate-900 dark:text-slate-100 truncate">
           {term.en}
         </span>
+        <SpeakButton text={term.en} size={11} />
         {term.starred && <span className="shrink-0 text-amber-400 text-[11px]">★</span>}
         <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate">{term.zh}</span>
         <span

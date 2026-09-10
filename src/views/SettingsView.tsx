@@ -12,6 +12,7 @@ import {
 } from '../lib/update'
 import { getSeedVersion } from '../lib/db'
 import { triggerSWCheck } from '../lib/pwa'
+import { Spinner, ProgressBar } from '../components/Spinner'
 import {
   SETUP_GUIDE,
   getCurrentUser,
@@ -51,6 +52,8 @@ export function SettingsView({
   const [seedVersion, setSeedVersion] = useState<number>(0)
   const [appUpdate, setAppUpdate] = useState<RemoteMeta | null>(null)
   const [checking, setChecking] = useState(false)
+  const [applying, setApplying] = useState(false)
+  const [applyProgress, setApplyProgress] = useState(0)
   const [user, setUser] = useState<string | null>(null)
   const [email, setEmail] = useState('')
   const [pwd, setPwd] = useState('')
@@ -210,20 +213,44 @@ export function SettingsView({
                 ))}
               </ul>
             )}
-            <button
-              onClick={() => onApplyUpdate()}
-              className="mt-2 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm"
-            >
-              立即更新
-            </button>
+            {applying ? (
+              <div className="mt-2">
+                <div className="flex items-center gap-2 text-xs text-indigo-700/90 dark:text-indigo-300/90">
+                  <Spinner size={12} />
+                  <span>正在更新… {applyProgress}%</span>
+                </div>
+                <ProgressBar value={applyProgress} className="mt-1.5" />
+              </div>
+            ) : (
+              <button
+                onClick={async () => {
+                  setApplying(true)
+                  setApplyProgress(8)
+                  // 模拟进度直到 onApplyUpdate 真正完成（它内部会触发 reload）
+                  const timers = [15, 28, 45, 62, 80, 92, 98].map((v) =>
+                    window.setTimeout(() => setApplyProgress(v), 220 + v * 14),
+                  )
+                  try {
+                    await onApplyUpdate()
+                  } catch {
+                    setApplying(false)
+                    setApplyProgress(0)
+                    timers.forEach(clearTimeout)
+                  }
+                }}
+                className="mt-2 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm"
+              >
+                立即更新
+              </button>
+            )}
           </div>
         )}
 
         <div className="mt-3 flex flex-wrap gap-2">
-          <Btn onClick={checkApp} disabled={checking}>
+          <Btn onClick={checkApp} disabled={checking} loading={checking}>
             检查应用更新
           </Btn>
-          <Btn onClick={checkSeed} disabled={checking}>
+          <Btn onClick={checkSeed} disabled={checking} loading={checking}>
             检查词条更新
           </Btn>
         </div>
@@ -427,23 +454,26 @@ function Btn({
   onClick,
   disabled,
   danger,
+  loading,
   children,
 }: {
   onClick: () => void
   disabled?: boolean
   danger?: boolean
+  loading?: boolean
   children: React.ReactNode
 }) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`px-4 py-2 rounded-lg text-sm border disabled:opacity-50 ${
+      className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm border disabled:opacity-60 disabled:cursor-not-allowed ${
         danger
           ? 'border-rose-200 text-rose-600 dark:border-rose-500/40 dark:text-rose-400'
           : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
       }`}
     >
+      {loading && <Spinner size={12} />}
       {children}
     </button>
   )

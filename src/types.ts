@@ -15,6 +15,9 @@ export type Category =
   | '网站'
   | '本地部署'
   | '云端部署'
+  | '游戏'
+  | '终端'
+  | '环境'
 
 export interface Term {
   id: string

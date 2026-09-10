@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { TermView } from '../types'
 import { CATEGORY_STYLE, MASTERY_LABEL, MASTERY_STYLE } from './TermCard'
+import { SpeakButton } from './SpeakButton'
 
 interface Props {
   term: TermView
@@ -39,7 +40,10 @@ export function TermDetail({ term, onClose, onUpdate, onDelete, onJump }: Props)
 
         <div className="px-5 pb-10">
           <div className="flex items-start justify-between gap-3 mt-1">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50 break-words">{term.en}</h2>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50 break-words flex items-center gap-2">
+              {term.en}
+              <SpeakButton text={term.en} size={17} />
+            </h2>
             <span className={`shrink-0 text-[11px] px-2 py-0.5 rounded-full ${CATEGORY_STYLE[term.category] ?? ''}`}>
               {term.category}
             </span>

@@ -18,6 +18,11 @@ import { seed16 } from './seed-16'
 import { seed17 } from './seed-17'
 import { seed18 } from './seed-18'
 import { seed19 } from './seed-19'
+import { seed20 } from './seed-20'
+import { seed21 } from './seed-21'
+import { seed22 } from './seed-22'
+import { seed23 } from './seed-23'
+import { seed24 } from './seed-24'
 import { pairsDetail1 } from './pairs-detail-1'
 import { pairsDetail2 } from './pairs-detail-2'
 
@@ -58,6 +63,11 @@ export const SEED_TERMS: Term[] = withPairsDetail([
   ...seed17,
   ...seed18,
   ...seed19,
+  ...seed20,
+  ...seed21,
+  ...seed22,
+  ...seed23,
+  ...seed24,
 ])
 
 export const CATEGORIES = [
@@ -77,4 +87,7 @@ export const CATEGORIES = [
   '网站',
   '本地部署',
   '云端部署',
+  '游戏',
+  '终端',
+  '环境',
 ] as const
