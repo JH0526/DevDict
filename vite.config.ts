@@ -8,6 +8,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 const pkg = JSON.parse(readFileSync(resolve(process.cwd(), 'package.json'), 'utf8'))
 
 export default defineConfig({
+  // 相对路径：Electron 桌面端用 file:// 加载 asar 内 dist 时，资源才能正确解析
+  base: './',
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
     __SEED_VERSION__: JSON.stringify(pkg.seedVersion),
@@ -29,7 +31,7 @@ export default defineConfig({
         theme_color: '#4f46e5',
         background_color: '#f8fafc',
         display: 'standalone',
-        start_url: '/',
+        start_url: './',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },

@@ -18,16 +18,20 @@ export interface SeedBundle {
   terms: Term[]
 }
 
+// 桌面端（file://）Electron 读 asar 内文件时不支持查询串，且需相对路径
+const isDesktop = typeof location !== 'undefined' && location.protocol === 'file:'
+const cacheBust = isDesktop ? '' : `?t=${Date.now()}`
+
 /** 应用版本信息（构建时生成到 public/version.json） */
 export async function fetchMeta(): Promise<RemoteMeta> {
-  const res = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' })
+  const res = await fetch(`./version.json${cacheBust}`, { cache: 'no-store' })
   if (!res.ok) throw new Error(`无法获取版本信息（${res.status}）`)
   return res.json()
 }
 
 /** 最新词条库（构建时生成到 public/seed-terms.json） */
 export async function fetchSeedBundle(): Promise<SeedBundle> {
-  const res = await fetch(`/seed-terms.json?t=${Date.now()}`, { cache: 'no-store' })
+  const res = await fetch(`./seed-terms.json${cacheBust}`, { cache: 'no-store' })
   if (!res.ok) throw new Error(`无法获取词条库（${res.status}）`)
   return res.json()
 }

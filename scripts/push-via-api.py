@@ -118,7 +118,7 @@ for i in range(0, len(files), BATCH):
 
 parent = api("GET", f"/repos/{REPO}/git/commits/{api('GET', f'/repos/{REPO}/git/ref/heads/{BRANCH}')['object']['sha']}")["sha"] if base_tree else None
 commit = api("POST", f"/repos/{REPO}/git/commits", {
-    "message": "feat: DevDict PWA v0.6.0 - 648 术语 / 19 分类 / 朗读 / 更新动效 / 三平台桌面端",
+    "message": "fix: DevDict v0.6.1 - 修复桌面端白屏（base 改相对路径 + 跳过 SW + 更新桌面端下载引导）",
     "tree": tree_sha,
     "parents": [parent] if parent else [],
 })["sha"]

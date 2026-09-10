@@ -1,7 +1,7 @@
 {
   "name": "devdict",
   "private": true,
-  "version": "0.6.0",
+  "version": "0.6.1",
   "seedVersion": 9,
   "description": "开发 / vibecoding 术语词典：电脑 + iPhone + 安卓 + 桌面 App",
   "author": {
@@ -13,6 +13,7 @@
   "main": "electron/main.cjs",
   "type": "module",
   "changelog": [
+    "v0.6.1：修复桌面端（Electron）启动白屏——Vite 改相对路径 base，桌面端跳过 Service Worker 注册；更新检查改为读取本地 json，桌面端新版本引导去 GitHub 下载安装包",
     "v0.6.0：英文术语名新增朗读按钮（Web Speech TTS）；新增游戏 / 终端 / 环境 3 个分类共 124 条，Git 补全 + 通用基础 47 条，共 647 条",
     "v0.5.0：新增打包相关 33 条术语（Bundle/Webpack/Vite/Capacitor/Electron 等），接入 CloudBase 同步（占位）+ 桌面 App 打包链路（Capacitor 已废弃，改纯 Electron）",
     "v0.4.1：补 Skill / Skills / Marketplace / Plugin / Open Source / Git / VS Code / License / Fork / MIT / PR / GPL 共 12 条基础词条（共 439 条）",

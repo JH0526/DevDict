@@ -60,6 +60,7 @@ export function SettingsView({
   const [busy, setBusy] = useState(false)
   const [showSql, setShowSql] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const isDesktop = typeof location !== 'undefined' && location.protocol === 'file:'
 
   useEffect(() => {
     if (!syncEnabled) return
@@ -221,6 +222,15 @@ export function SettingsView({
                 </div>
                 <ProgressBar value={applyProgress} className="mt-1.5" />
               </div>
+            ) : isDesktop ? (
+              <a
+                href="https://github.com/JH0526/DevDict/releases"
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 inline-block px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm"
+              >
+                前往 GitHub 下载新版
+              </a>
             ) : (
               <button
                 onClick={async () => {
