@@ -1,0 +1,127 @@
+{
+  "name": "devdict",
+  "private": true,
+  "version": "0.5.0",
+  "seedVersion": 8,
+  "description": "开发 / vibecoding 术语词典：电脑 + iPhone + 安卓 + 桌面 App",
+  "author": {
+    "name": "JH0526",
+    "url": "https://github.com/JH0526/DevDict"
+  },
+  "homepage": "https://github.com/JH0526/DevDict",
+  "main": "electron/main.cjs",
+  "type": "module",
+  "changelog": [
+    "v0.5.0：新增打包相关 33 条术语（Bundle/Webpack/Vite/Capacitor/Electron 等），接入 CloudBase 同步（占位）+ 桌面 App 打包链路（Capacitor 已废弃，改纯 Electron）",
+    "v0.4.1：补 Skill / Skills / Marketplace / Plugin / Open Source / Git / VS Code / License / Fork / MIT / PR / GPL 共 12 条基础词条（共 439 条）",
+    "v0.4.0：全分类补齐，16 分类 427 条",
+    "v0.3.0：新增 VibeCoding 分类 76 条",
+    "v0.2.0：新增 100 条（共 200 条）",
+    "v0.1.0：首版 100 条种子术语 + PWA + 内置更新"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "prebuild": "node scripts/gen-meta.mjs && python scripts/gen-icons.py",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "electron:dev": "VITE_DEV_SERVER_URL=http://localhost:5173 electron electron/main.cjs",
+    "electron:compile": "esbuild electron/main.ts --bundle --platform=node --external:electron --format=cjs --outfile=electron/main.cjs --target=node20 --sourcemap",
+    "cap:build:win": "npm run build && npm run electron:compile && electron-builder --win --x64 --publish never",
+    "cap:build:mac": "npm run build && npm run electron:compile && electron-builder --mac --x64 --publish never",
+    "cap:build:linux": "npm run build && npm run electron:compile && electron-builder --linux --x64 --publish never"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.5.1",
+    "@cloudbase/js-sdk": "^3.9.3",
+    "fuse.js": "^7.0.0",
+    "idb": "^8.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.1",
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "electron": "^44.3.0",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.24.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.0",
+    "vite-plugin-pwa": "^0.21.1"
+  },
+  "build": {
+    "appId": "com.jh0526.devdict",
+    "productName": "DevDict · 开发术语词典",
+    "copyright": "Copyright © 2026 JH0526",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/main.cjs",
+      "package.json",
+      "!node_modules/**/test/**",
+      "!node_modules/**/*.map",
+      "!node_modules/.bin"
+    ],
+    "asar": true,
+    "compression": "maximum",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "DevDict-${version}-win-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "DevDict"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.developer-tools",
+      "artifactName": "DevDict-${version}-mac-${arch}.${ext}"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "category": "Development",
+      "artifactName": "DevDict-${version}-linux-${arch}.${ext}"
+    }
+  }
+}
