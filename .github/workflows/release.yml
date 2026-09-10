@@ -50,6 +50,7 @@ jobs:
 
       - name: Locate installer
         id: locate
+        shell: bash
         run: |
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             FIND=$(find release -name "*.exe" -type f | head -1)

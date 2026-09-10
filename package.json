@@ -54,7 +54,7 @@
   },
   "build": {
     "appId": "com.jh0526.devdict",
-    "productName": "DevDict · 开发术语词典",
+    "productName": "DevDict",
     "copyright": "Copyright © 2026 JH0526",
     "directories": {
       "output": "release",
