@@ -1,0 +1,87 @@
+name: Release Desktop
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '只构建不上传（用于测试）'
+        type: boolean
+        default: false
+
+jobs:
+  build-desktop:
+    name: Build ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web assets
+        run: npm run build
+
+      - name: Sync Capacitor + Build Desktop
+        run: npm run cap:build:${{ matrix.os == 'windows-latest' && 'win' || matrix.os == 'macos-latest' && 'mac' || 'linux' }}
+        env:
+          # 不签名：用户接受"未识别开发者"提示
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Locate installer
+        id: locate
+        run: |
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            FIND=$(find release -name "*.exe" -type f | head -1)
+            echo "installer=$FIND" >> $GITHUB_OUTPUT
+          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+            FIND=$(find release -name "*.dmg" -type f | head -1)
+            echo "installer=$FIND" >> $GITHUB_OUTPUT
+          else
+            FIND=$(find release -name "*.AppImage" -o -name "*.deb" -type f | head -1)
+            echo "installer=$FIND" >> $GITHUB_OUTPUT
+          fi
+          echo "Located: $FIND"
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: DevDict-${{ matrix.os }}
+          path: ${{ steps.locate.outputs.installer }}
+          if-no-files-found: warn
+
+  release:
+    name: Publish GitHub Release
+    needs: build-desktop
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            artifacts/DevDict-*/DevDict-*.exe
+            artifacts/DevDict-*/DevDict-*.dmg
+            artifacts/DevDict-*/DevDict-*.AppImage
+            artifacts/DevDict-*/DevDict-*.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
