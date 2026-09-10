@@ -19,6 +19,14 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Pillow (icon generation)
+        run: pip install pillow
+
       - name: Install dependencies
         run: npm ci
 
