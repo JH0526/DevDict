@@ -64,8 +64,20 @@ export function AddView({ terms, onSaveMany, onToast }: Props) {
     try {
       const list = await generateTerms(words, cfg)
       if (!list.length) throw new Error('AI 未返回有效术语')
+      // AI 可能漏词（尤其一次性给 20 个时），提示缺了哪些，让用户决定重生成还是手动补
+      const got = new Set<string>()
+      for (const t of list) {
+        got.add(norm(t.en))
+        if (t.zh) got.add(norm(t.zh))
+      }
+      const missed = words.filter((w) => !got.has(norm(w)))
       setDrafts(list)
-      onToast(`生成完成 ${list.length} 条，确认后保存`)
+      onToast(
+        missed.length
+          ? `生成 ${list.length} 条，AI 漏了 ${missed.length} 个：${missed.join('、')}（可重新生成或手动补充）`
+          : `生成完成 ${list.length} 条，确认后保存`,
+        !missed.length,
+      )
     } catch (e) {
       onToast(e instanceof Error ? e.message : '生成失败', false)
     } finally {
@@ -99,10 +111,32 @@ export function AddView({ terms, onSaveMany, onToast }: Props) {
   const saveAll = async () => {
     const valid = drafts.filter((d) => d.en.trim())
     if (!valid.length) return onToast('没有可保存的术语', false)
-    await onSaveMany(valid)
-    onToast(`已保存 ${valid.length} 条到词典`)
-    setDrafts([])
-    setInput('')
+
+    // 保存前再查一次：AI 返回的英文名/中文名可能与库内已有词重名，
+    // 草稿之间也可能重复（比如手动填了两条一样的）。命中就整体拦下。
+    const seen = new Set<string>()
+    const dups: string[] = []
+    for (const d of valid) {
+      const keys = [d.en, d.zh, ...(d.alias ?? [])].map(norm).filter(Boolean)
+      if (keys.some((k) => existing.has(k) || seen.has(k))) {
+        dups.push(d.en || d.zh)
+        continue
+      }
+      keys.forEach((k) => seen.add(k))
+    }
+    if (dups.length) return onToast(`术语词典内已有此术语词：${dups.join('、')}`, false)
+
+    setBusy(true)
+    try {
+      await onSaveMany(valid)
+      onToast(`已保存 ${valid.length} 条到词典`)
+      setDrafts([])
+      setInput('')
+    } catch (e) {
+      onToast(e instanceof Error ? e.message : '保存失败', false)
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -145,7 +179,11 @@ export function AddView({ terms, onSaveMany, onToast }: Props) {
               待保存草稿（{drafts.length}）
             </span>
             <div className="flex gap-2">
-              <button onClick={saveAll} className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium">
+              <button
+                onClick={saveAll}
+                disabled={busy}
+                className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium disabled:opacity-50"
+              >
                 保存全部
               </button>
               <button

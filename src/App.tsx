@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { TermView, UserState } from './types'
 import { useDict, useSearch, type MasteryFilter } from './lib/store'
 import { applyAppUpdate, registerPWA } from './lib/pwa'
@@ -18,8 +18,17 @@ const TABS: { key: Tab; label: string; icon: string }[] = [
 ]
 
 export default function App() {
-  const { terms, loading, refresh, updateState, removeTerm, importTerms, updateSeed, resetAll } =
-    useDict()
+  const {
+    terms,
+    loading,
+    refresh,
+    updateState,
+    removeTerm,
+    importTerms,
+    importStates,
+    updateSeed,
+    resetAll,
+  } = useDict()
   const [needRefresh, setNeedRefresh] = useState(false)
   const [tab, setTab] = useState<Tab>('dict')
   const [query, setQuery] = useState('')
@@ -39,9 +48,12 @@ export default function App() {
     registerPWA(() => setNeedRefresh(true))
   }, [])
 
+  const toastTimer = useRef<number | null>(null)
   const showToast = useCallback((msg: string, ok = true) => {
     setToast({ msg, ok })
-    setTimeout(() => setToast(null), 2200)
+    // 不清理上一个定时器的话，连续提示时前一条会提前把新的清掉
+    if (toastTimer.current) window.clearTimeout(toastTimer.current)
+    toastTimer.current = window.setTimeout(() => setToast(null), 2200)
   }, [])
 
   const states: UserState[] = useMemo(
@@ -121,6 +133,7 @@ export default function App() {
             terms={terms}
             states={states}
             onImport={importTerms}
+            onImportStates={importStates}
             onReset={resetAll}
             onToast={showToast}
             onRefresh={refresh}

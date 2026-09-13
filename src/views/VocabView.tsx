@@ -10,9 +10,11 @@ interface Props {
 /** 生词本：收藏 + 生疏的词，可以当复习卡片翻 */
 export function VocabView({ terms, onUpdate, onOpen }: Props) {
   const list = terms.filter((t) => t.starred || t.mastery === 0)
-  const [idx, setIdx] = useState(0)
+  const [rawIdx, setRawIdx] = useState(0)
   const [flipped, setFlipped] = useState(false)
 
+  // 列表可能在别处变短（比如在详情页取消收藏），夹一下避免索引越界显示成"生词本是空的"
+  const idx = list.length ? Math.min(rawIdx, list.length - 1) : 0
   const cur = list[idx]
 
   if (!cur) {
@@ -89,7 +91,7 @@ export function VocabView({ terms, onUpdate, onOpen }: Props) {
             <button
               key={t.id}
               onClick={() => {
-                setIdx(i)
+                setRawIdx(i)
                 setFlipped(false)
               }}
               className="w-full flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 text-left"
@@ -108,6 +110,6 @@ export function VocabView({ terms, onUpdate, onOpen }: Props) {
 
   function next() {
     setFlipped(false)
-    setIdx((i) => (i + 1) % Math.max(list.length, 1))
+    setRawIdx((i) => (i + 1) % Math.max(list.length, 1))
   }
 }

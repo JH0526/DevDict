@@ -29,6 +29,7 @@ interface Props {
   terms: Term[]
   states: UserState[]
   onImport: (list: Term[]) => Promise<void>
+  onImportStates: (list: UserState[]) => Promise<void>
   onReset: () => Promise<void>
   onToast: (msg: string, ok?: boolean) => void
   onRefresh: () => Promise<void>
@@ -41,6 +42,7 @@ export function SettingsView({
   terms,
   states,
   onImport,
+  onImportStates,
   onReset,
   onToast,
   onRefresh,
@@ -113,17 +115,47 @@ export function SettingsView({
     a.href = URL.createObjectURL(blob)
     a.download = `devdict-backup-${new Date().toISOString().slice(0, 10)}.json`
     a.click()
-    URL.revokeObjectURL(a.href)
+    // 立即 revoke 可能让部分浏览器来不及取数据，延后释放
+    setTimeout(() => URL.revokeObjectURL(a.href), 10_000)
     onToast('已导出备份')
   }
 
   const importJson = async (file: File) => {
     try {
       const json = JSON.parse(await file.text())
-      const list: Term[] = Array.isArray(json) ? json : (json.terms ?? [])
-      if (!list.length) return onToast('文件里没有词条', false)
+      const raw: Term[] = Array.isArray(json) ? json : (json.terms ?? [])
+      if (!raw.length) return onToast('文件里没有词条', false)
+
+      // 过滤脏数据与重名项：没有英文名的直接丢；与库内另一条词条同名的跳过，
+      // 否则会盖掉种子词条或造出搜索时并列的重复项。id 相同视为同一条，允许覆盖。
+      const owner = new Map<string, string>()
+      for (const t of terms) {
+        if (t.en) owner.set(norm(t.en), t.id)
+        if (t.zh) owner.set(norm(t.zh), t.id)
+      }
+      const list: Term[] = []
+      let skipped = 0
+      for (const t of raw) {
+        if (!t || typeof t.en !== 'string' || !t.en.trim()) {
+          skipped++
+          continue
+        }
+        const hit = owner.get(norm(t.en)) ?? (t.zh ? owner.get(norm(t.zh)) : undefined)
+        if (hit && hit !== t.id) {
+          skipped++
+          continue
+        }
+        list.push({ ...t, source: t.source ?? 'user' })
+      }
+      if (!list.length) return onToast('没有可导入的新词条（可能全部重复）', false)
       await onImport(list)
-      onToast(`已导入 ${list.length} 条`)
+      // 备份里还带着个人标注，一并恢复
+      const rawStates: UserState[] = Array.isArray(json) ? [] : (json.states ?? [])
+      if (rawStates.length) await onImportStates(rawStates.filter((s) => s && s.termId))
+      onToast(
+        `已导入 ${list.length} 条${rawStates.length ? `、${rawStates.length} 条标注` : ''}` +
+          (skipped ? `，跳过 ${skipped} 条（重复或格式不完整）` : ''),
+      )
     } catch {
       onToast('文件解析失败', false)
     }
@@ -168,8 +200,13 @@ export function SettingsView({
       } else {
         const remote = await pull()
         if (remote.terms.length) await onImport(remote.terms)
+        // 个人标注（掌握程度 / 收藏 / 备注）也要跟着恢复，否则下拉后标注全丢
+        if (remote.states.length) await onImportStates(remote.states)
         await onRefresh()
-        onToast(`已拉取 ${remote.terms.length} 条词条`)
+        onToast(
+          `已拉取 ${remote.terms.length} 条词条` +
+            (remote.states.length ? `、${remote.states.length} 条标注` : ''),
+        )
       }
     } catch (e) {
       onToast(e instanceof Error ? e.message : '同步失败', false)
@@ -441,6 +478,11 @@ export function SettingsView({
 
 const INPUT =
   'w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent px-3 py-2 text-sm text-slate-700 dark:text-slate-200 outline-none focus:border-indigo-400'
+
+/** 归一化：小写、去首尾空白、合并内部空白，用于查重比对 */
+function norm(s: string): string {
+  return s.trim().toLowerCase().replace(/\s+/g, ' ')
+}
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (

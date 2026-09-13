@@ -37,16 +37,21 @@ export async function ensureSeeded() {
   const seeded = await db.get('meta', 'seededVersion')
   if (seeded !== SEED_VERSION) {
     // 种子库升级：补进新增词条，不覆盖用户已改过的
-    const tx = db.transaction('terms', 'readwrite')
+    // terms 和 states 放同一个事务，清理废弃词条时才能连带删掉它的个人标注
+    const tx = db.transaction(['terms', 'states'], 'readwrite')
+    const termStore = tx.objectStore('terms')
+    const stateStore = tx.objectStore('states')
     // 先清理：种子词条若已从新版本中移除（去重 / 合并 / 改名），本地要跟着删，
     // 否则老用户升级后会永久残留一批已废弃的重复词条。用户自建词条不动。
     const seedIds = new Set(SEED_TERMS.map((t) => t.id))
-    for (const exist of await tx.store.getAll()) {
-      if (exist.source === 'seed' && !seedIds.has(exist.id)) await tx.store.delete(exist.id)
+    for (const exist of await termStore.getAll()) {
+      if (exist.source !== 'seed' || seedIds.has(exist.id)) continue
+      await termStore.delete(exist.id)
+      await stateStore.delete(exist.id) // 连带删标注，避免留下孤儿状态
     }
     for (const t of SEED_TERMS) {
-      const exist = await tx.store.get(t.id)
-      if (!exist || exist.source === 'seed') await tx.store.put({ ...t, source: 'seed' })
+      const exist = await termStore.get(t.id)
+      if (!exist || exist.source === 'seed') await termStore.put({ ...t, source: 'seed' })
     }
     await tx.done
     await db.put('meta', SEED_VERSION, 'seededVersion')
@@ -107,6 +112,18 @@ export async function getAllStates(): Promise<UserState[]> {
 export async function putState(state: UserState) {
   const db = await getDB()
   await db.put('states', state)
+}
+
+/** 批量写入个人状态（云同步下拉时用） */
+export async function putStates(list: UserState[]) {
+  if (!list.length) return
+  const db = await getDB()
+  const tx = db.transaction('states', 'readwrite')
+  for (const s of list) {
+    if (!s?.termId) continue
+    await tx.store.put(s)
+  }
+  await tx.done
 }
 
 export async function getMeta<T>(key: string): Promise<T | undefined> {

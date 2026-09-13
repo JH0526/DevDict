@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Fuse from 'fuse.js'
 import type { Term, TermView, UserState } from '../types'
 import { CATEGORIES } from '../data'
@@ -24,6 +24,11 @@ function merge(terms: Term[], states: UserState[]): TermView[] {
 export function useDict() {
   const [terms, setTerms] = useState<TermView[]>([])
   const [loading, setLoading] = useState(true)
+  // terms 的镜像，供 updateState 同步读取当前值（不依赖 setTerms 回调的执行时机）
+  const termsRef = useRef<TermView[]>([])
+  useEffect(() => {
+    termsRef.current = terms
+  }, [terms])
 
   const refresh = useCallback(async () => {
     await db.ensureSeeded()
@@ -42,29 +47,21 @@ export function useDict() {
     refresh()
   }, [refresh])
 
-  const updateState = useCallback(
-    async (termId: string, patch: Partial<UserState>) => {
-      let next: UserState
-      setTerms((prev) =>
-        prev.map((t) => {
-          if (t.id !== termId) return t
-          const cur: UserState = {
-            termId,
-            mastery: t.mastery,
-            note: t.note,
-            starred: t.starred,
-            updatedAt: Date.now(),
-          }
-          next = { ...cur, ...patch, updatedAt: Date.now() }
-          return { ...t, ...patch }
-        }),
-      )
-      // 上面赋值在 map 回调里执行，此处 next 已确定
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      await db.putState(next!)
-    },
-    [],
-  )
+  const updateState = useCallback(async (termId: string, patch: Partial<UserState>) => {
+    // 词条可能已被删除（词库清理 / 用户删除），此时标注无从谈起，直接忽略而不是写入脏状态
+    const cur = termsRef.current.find((t) => t.id === termId)
+    if (!cur) return
+    const next: UserState = {
+      termId,
+      mastery: cur.mastery,
+      note: cur.note,
+      starred: cur.starred,
+      ...patch,
+      updatedAt: Date.now(),
+    }
+    setTerms((prev) => prev.map((t) => (t.id === termId ? { ...t, ...patch } : t)))
+    await db.putState(next)
+  }, [])
 
   const addTerm = useCallback(
     async (term: Term) => {
@@ -90,6 +87,15 @@ export function useDict() {
     [refresh],
   )
 
+  /** 批量写入个人状态（云同步下拉时用，以云端为准） */
+  const importStates = useCallback(
+    async (list: UserState[]) => {
+      await db.putStates(list)
+      await refresh()
+    },
+    [refresh],
+  )
+
   /** 拉取线上最新词条库并增量合并，不动用户自建词条和个人标注 */
   const updateSeed = useCallback(async () => {
     const bundle = await fetchSeedBundle()
@@ -105,7 +111,18 @@ export function useDict() {
     await refresh()
   }, [refresh])
 
-  return { terms, loading, refresh, updateState, addTerm, removeTerm, importTerms, updateSeed, resetAll }
+  return {
+    terms,
+    loading,
+    refresh,
+    updateState,
+    addTerm,
+    removeTerm,
+    importTerms,
+    importStates,
+    updateSeed,
+    resetAll,
+  }
 }
 
 /** 模糊搜索：英文 / 中文 / 别名 / 解释都能命中，应对"只记得半截/听来的词" */
