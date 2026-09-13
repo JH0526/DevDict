@@ -131,7 +131,7 @@ export const seed06: Term[] = [
     id: 'grounding',
     en: 'Grounding',
     zh: '事实依据',
-    alias: [' grounding', '有据可依'],
+    alias: ['Grounded', '有据可依'],
     category: 'AI',
     pro: '让模型的回答严格基于给定的外部资料（检索结果、文档、数据库）而非参数记忆，并可追溯到具体出处。',
     plain: '开卷考试，而且答题必须注明"答案来自课本第几页"。不许凭印象写，写了就要能翻到原文。',

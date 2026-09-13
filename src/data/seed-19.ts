@@ -148,21 +148,6 @@ export const seed19: Term[] = [
     ],
   },
   {
-    id: 'code-splitting',
-    en: 'Code Splitting',
-    zh: '代码分割',
-    category: '工程化',
-    alias: ['Lazy Loading', 'Chunk Splitting', 'Route'],
-    pro: '把一个 bundle 拆成多个 chunk，按路由 / 按需加载。Next.js / Vite / Webpack 都支持。',
-    plain: '不要一上来就全装：把代码拆成"先装的"和"用到再装"，首屏只下载必需的。',
-    purpose: '让首屏加载更快；用户为没访问的页面不付流量。',
-    scene: '路由级懒加载 `import()`；配 `splitChunks`；按用户角色分包。',
-    related: ['Bundle', 'Lazy Loading', 'Route'],
-    pairs: [
-      { en: 'Bundle', rel: 'code-splitting 决定 bundle 怎么拆', role: '一个整包 vs 多包', env: '性能优化' },
-    ],
-  },
-  {
     id: 'source-map',
     en: 'Source Map',
     zh: '源码映射',

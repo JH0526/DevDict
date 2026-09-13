@@ -26,17 +26,6 @@ export const seed24: Term[] = [
     related: ['Stdin', 'Stderr', 'Redirect'],
   },
   {
-    id: 'stderr',
-    en: 'Stderr',
-    zh: '标准错误',
-    category: '终端',
-    pro: '文件描述符 2，进程默认的错误输出通道，与 stdout 分离。',
-    plain: '"程序报错走这根管子"，和正常输出分开。',
-    purpose: '让错误信息独立处理，避免污染正常数据。',
-    scene: '`./build 2> err.log`；`make 2>&1 | less`。',
-    related: ['Stdin', 'Stdout'],
-  },
-  {
     id: 'clone',
     en: 'Clone',
     zh: '克隆仓库',
@@ -166,6 +155,7 @@ export const seed24: Term[] = [
     pro: '一种特殊 Collider：不产生物理碰撞响应，但当其他物体进入时触发回调。',
     plain: '"看不见的感应区"，踩到就触发事件。',
     scene: '进入新区域；捡起道具；过场动画触发。',
+    purpose: '在不产生物理阻挡的前提下感知"谁进来了"，把空间位置变化转成可驱动剧情、拾取、区域事件的回调。',
     related: ['Collider', 'Physics Engine'],
   },
   {
@@ -302,8 +292,8 @@ export const seed24: Term[] = [
     related: ['Branch', 'Release'],
   },
   {
-    id: 'component',
-    en: 'Component',
+    id: 'game-component',
+    en: 'Game Component',
     zh: '组件',
     category: '游戏',
     pro: 'Unity 等引擎的设计模式：把功能拆成可挂载的组件，GameObject 通过组合组件获得能力。',

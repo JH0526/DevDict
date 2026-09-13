@@ -1,8 +1,8 @@
 {
   "name": "devdict",
   "private": true,
-  "version": "0.7.0",
-  "seedVersion": 10,
+  "version": "0.7.1",
+  "seedVersion": 11,
   "description": "开发 / vibecoding 术语词典：电脑 + iPhone + 安卓 + 桌面 App",
   "author": {
     "name": "JH0526",
@@ -13,6 +13,7 @@
   "main": "electron/main.cjs",
   "type": "module",
   "changelog": [
+    "v0.7.1：修复词条库重复导致的更新不同步——清理 20 组 id 重复（原 848 条因主键覆盖实际只入库 828 条），现在 830 条全部生效；补充 trigger 缺失字段、修正 grounding 脏别名；种子库升级时会同步删除已废弃的重复词条，老用户更新后不再残留旧数据",
     "v0.7.0：新增 10 个分类（算法与数据结构 / 设计模式 / 操作系统 / 网络协议 / 性能优化 / 可观测性 / 消息队列与缓存 / 架构模式 / 移动开发 / 编码与字符）共 200 条术语；AI 生成支持批量（每行一个，上限 20）且生成前自动全库查重，术语词典已有即停止并提示",
     "v0.6.1：修复桌面端（Electron）启动白屏——Vite 改相对路径 base，桌面端跳过 Service Worker 注册；更新检查改为读取本地 json，桌面端新版本引导去 GitHub 下载安装包",
     "v0.6.0：英文术语名新增朗读按钮（Web Speech TTS）；新增游戏 / 终端 / 环境 3 个分类共 124 条，Git 补全 + 通用基础 47 条，共 647 条",
