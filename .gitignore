@@ -8,8 +8,6 @@ dist-ssr
 
 # 图标自动生成（prebuild 跑 gen-icons.py）
 public/icon-*.png
-public/seed-terms.json
-public/version.json
 build/icon.*
 
 # Electron 编译产物（prebuild 不跑这个，跑 electron:compile 后生成）
