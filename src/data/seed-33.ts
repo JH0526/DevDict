@@ -104,7 +104,7 @@ export const seed33: Term[] = [
   {
     id: 'mob-sandbox',
     en: 'App Sandbox',
-    zh: '沙盒',
+    zh: '应用沙盒',
     category: '移动开发',
     pro: '移动系统为每个 App 分配的隔离存储与权限空间，App 默认只能访问自己的沙盒，跨 App 访问需显式授权。',
     plain: '“每家一个独立院子”：App 默认只在自己院子里活动，出界要用户点头。',

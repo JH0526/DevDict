@@ -93,7 +93,7 @@ export const seed04: Term[] = [
     plain: '游戏的主线存档和多个支线存档。你在支线上随便折腾，玩崩了主线还在。折腾出成果了再合并回主线。',
     purpose: '让多人、多个任务在同一份代码上并行推进而互不干扰。',
     scene: '开始开发新功能；修 bug；多人协作同一个仓库。',
-    related: ['Merge', 'Rebase', 'PR'],
+    related: ['Merge', 'Rebase', 'Pull Request'],
     pairs: [
       { en: 'Merge', rel: '分支成果整合回主线的最常用方式' },
       { en: 'Conflict', rel: '两条分支改了同一处，合并时才会撞车' },
@@ -175,23 +175,6 @@ export const seed04: Term[] = [
     pairs: [
       { en: 'Commit', rel: '操作的最小单位就是提交，所以提交要切得干净才好拣' },
       { en: 'Rollback', rel: '线上要紧急修一个问题时，拣选修复提交到发布分支最快' },
-    ],
-  },
-  {
-    id: 'pr',
-    en: 'Pull Request',
-    zh: '合并请求',
-    alias: ['PR', 'Merge Request', 'MR'],
-    category: 'Git',
-    pro: '请求把自己的分支合并进目标分支，并在合并前进行代码评审、CI 检查与讨论。是协作流程的核心枢纽，而非 Git 本身的功能（是 GitHub/GitLab 提供的）。',
-    plain: '交作业给老师批改：你把成果递上去，别人可以逐行评论、要求修改，通过了才并入正式档案。',
-    purpose: '在代码进入主干之前插入一道人工评审 + 自动检查的关卡，把问题拦在合并之前。',
-    scene: '团队协作开发；开源贡献；需要别人 review 代码。',
-    related: ['Code Review', 'CI/CD', 'Branch'],
-    pairs: [
-      { en: 'CI/CD', rel: 'PR 上自动跑测试和 lint，结果直接显示在页面里' },
-      { en: 'Merge', rel: 'PR 通过后的动作就是执行合并' },
-      { en: 'Lint', rel: '格式和低级错误交给自动化，人只 review 逻辑' },
     ],
   },
   {

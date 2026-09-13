@@ -68,10 +68,10 @@ export const seed18: Term[] = [
   },
   {
     id: 'pr-pull-request',
-    en: 'PR / Pull Request',
+    en: 'Pull Request',
     zh: '合并请求',
     category: 'VibeCoding',
-    alias: ['Merge Request', 'MR'],
+    alias: ['PR', 'Merge Request', 'MR'],
     pro: '在 Git 协作里，PR / Pull Request 是"我改了这些代码，请审一下，同意就合到主分支"的正式提案。GitHub / GitLab 把它做成可讨论、可 review、可跑 CI 的核心流程。',
     plain: '代码版的"我交了稿子请老师批改"。别人点了 Approve（同意）才能合进去；点 Request Changes（要改）你就得改完再提。',
     purpose: '让代码合并前先过审——既能抓 bug，又能传播知识，还能让 CI 自动跑测试。',

@@ -3,20 +3,6 @@ import type { Term } from '../types'
 // seed-31：「消息队列与缓存」相关术语词（选现有词典未单列的概念，避开已收录的 Cache/Cache-Aside/Idempotent/Saga/Circuit Breaker 等）
 export const seed31: Term[] = [
   {
-    id: 'mq-message-queue',
-    en: 'Message Queue (Middleware)',
-    zh: '消息队列',
-    category: '消息队列与缓存',
-    pro: '在生产者与消费者之间引入缓冲队列，异步解耦两者，支持削峰、重试与可靠投递。',
-    plain: '“中间排队的信箱”：A 把活丢进队列就走，B 按自己节奏来取，互不阻塞。',
-    purpose: '解耦与异步，削平流量峰值，提升系统弹性。',
-    scene: '下单后异步发邮件、任务排队执行。',
-    related: ['Pub/Sub', 'Kafka', 'Consumer'],
-    pairs: [
-      { en: 'Kafka', rel: '消息队列的一种高吞吐实现', role: '承载大规模事件流', env: '日志/行为流处理' },
-    ],
-  },
-  {
     id: 'mq-kafka',
     en: 'Kafka',
     zh: 'Kafka',
@@ -136,17 +122,6 @@ export const seed31: Term[] = [
     purpose: '为数据库前垫一层，挡掉大量重复读。',
     scene: '会话缓存、查询结果缓存。',
     related: ['Redis', 'Cache', 'Cache Hit & Miss'],
-  },
-  {
-    id: 'mq-event-driven',
-    en: 'Event-Driven Pattern',
-    zh: '事件驱动',
-    category: '消息队列与缓存',
-    pro: '系统各模块通过产生/消费事件来协作，而非直接调用，事件触发后续动作，松耦合且易扩展。',
-    plain: '“开会靠广播”：一件事发生了就广而告之，谁关心谁自己接活。',
-    purpose: '降低模块耦合，让系统对变化更开放。',
-    scene: '微服务协作、实时流处理、IoT。',
-    related: ['Pub/Sub', 'Message Queue', 'CQRS'],
   },
   {
     id: 'mq-backpressure',

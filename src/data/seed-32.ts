@@ -3,20 +3,6 @@ import type { Term } from '../types'
 // seed-32：「架构模式」相关术语词（选现有词典未单列的概念，避开已收录的 Microservices/Serverless/Saga/Circuit Breaker）
 export const seed32: Term[] = [
   {
-    id: 'arch-monolith',
-    en: 'Monolithic Architecture',
-    zh: '单体架构',
-    category: '架构模式',
-    pro: '所有功能打包成一个可部署单元（一个进程/一个包），模块间直接函数调用，早期最简单、调试最直接。',
-    plain: '“一整块蛋糕”：所有功能都在一个程序里，调用就是函数跳一下，部署也只发一份。',
-    purpose: '小团队 early stage 最快落地，省去分布式复杂度。',
-    scene: '创业 MVP、内部工具。',
-    related: ['Layered Architecture', 'Microservices'],
-    pairs: [
-      { en: 'Microservices', rel: '单体演进的常见方向', role: '规模变大后按域拆开', env: '团队与流量增长' },
-    ],
-  },
-  {
     id: 'arch-soa',
     en: 'SOA',
     zh: '面向服务架构',
@@ -105,28 +91,6 @@ export const seed32: Term[] = [
     related: ['Hexagonal Architecture', 'Dependency Injection', 'Use Case'],
   },
   {
-    id: 'arch-service-mesh',
-    en: 'Service Mesh (Infra)',
-    zh: '服务网格',
-    category: '架构模式',
-    pro: '把服务间通信、重试、鉴权、观测等通用能力下沉到 sidecar 代理网格，业务代码无需关心。',
-    plain: '“给每个服务配个保镖”：通信的脏活累活交给边上的代理，业务只管业务。',
-    purpose: '在微服务里统一管理横切关注点。',
-    scene: 'K8s 上的多语言微服务。',
-    related: ['Sidecar', 'mTLS', 'Microservices'],
-  },
-  {
-    id: 'arch-api-gateway',
-    en: 'API Gateway (Pattern)',
-    zh: 'API 网关',
-    category: '架构模式',
-    pro: '系统的统一入口，负责路由、聚合、鉴权、限流与协议转换，屏蔽后端服务的拆分细节。',
-    plain: '“大楼唯一大门”：所有请求先过它，由它分派、验票、限流。',
-    purpose: '收敛横切逻辑，简化客户端与后端的对接。',
-    scene: '微服务对外暴露、移动端 BFF 前置。',
-    related: ['BFF', 'Reverse Proxy', 'Load Balancer'],
-  },
-  {
     id: 'arch-bff',
     en: 'BFF',
     zh: '后端为前端',
@@ -150,9 +114,10 @@ export const seed32: Term[] = [
   },
   {
     id: 'arch-sidecar',
-    en: 'Sidecar Pattern',
+    en: 'Sidecar',
     zh: '边车模式',
     category: '架构模式',
+    alias: ['Sidecar Pattern'],
     pro: '为每个主容器配一个辅助容器，负责日志、代理、治理等，与主容器同生命周期、共享网络。',
     plain: '“挎斗摩托”：主车干主业，边上的小斗专门管通信/监控这些杂活。',
     purpose: '把通用能力从主程序剥离，独立升级。',

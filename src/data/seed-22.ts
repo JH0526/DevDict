@@ -187,17 +187,6 @@ export const seed22: Term[] = [
     related: ['Sidecar', 'Microservices'],
   },
   {
-    id: 'sidecar',
-    en: 'Sidecar',
-    zh: '边车模式',
-    category: '环境',
-    pro: '把辅助能力（日志、代理、配置刷新）作为独立进程/容器，和主应用一起部署在同一 Pod。',
-    plain: '"主程序旁边坐个小跟班"，专门干杂活。',
-    purpose: '不污染主应用，单独升级辅助能力。',
-    scene: '日志收集 sidecar；Envoy 代理。',
-    related: ['Service Mesh', 'Pod'],
-  },
-  {
     id: 'forward-proxy',
     en: 'Forward Proxy',
     zh: '正向代理',

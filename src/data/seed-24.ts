@@ -294,7 +294,7 @@ export const seed24: Term[] = [
   {
     id: 'game-component',
     en: 'Game Component',
-    zh: '组件',
+    zh: '游戏组件',
     category: '游戏',
     pro: 'Unity 等引擎的设计模式：把功能拆成可挂载的组件，GameObject 通过组合组件获得能力。',
     plain: '"游戏对象的零件"，挂哪个就有哪个能力。',

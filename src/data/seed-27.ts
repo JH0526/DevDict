@@ -63,7 +63,7 @@ export const seed27: Term[] = [
   {
     id: 'os-paging',
     en: 'Paging',
-    zh: '分页',
+    zh: '内存分页',
     category: '操作系统',
     pro: '把虚拟与物理内存都切成固定大小的页（通常 4KB），用页表记录映射，避免外部碎片。',
     plain: '“把内存切成等大的方格”：地址换算成“第几页＋页内偏移”两截。',

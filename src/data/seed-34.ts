@@ -69,17 +69,6 @@ export const seed34: Term[] = [
     related: ['Serialization', 'API', 'Data Format'],
   },
   {
-    id: 'enc-serialization',
-    en: 'Serialization (Encoding)',
-    zh: '序列化',
-    category: '编码与字符',
-    pro: '把内存中的对象图转换成可存储/传输的线性格式（JSON、Protobuf、二进制），反之为反序列化。',
-    plain: '“把活对象打包成能寄存的包裹”：内存里的东西先变成一串字节才能存盘或发走。',
-    purpose: '实现跨进程、跨网络的数据传递与持久化。',
-    scene: 'RPC、缓存、消息体、落库。',
-    related: ['Deserialization', 'JSON', 'Protobuf'],
-  },
-  {
     id: 'enc-deserialization',
     en: 'Deserialization',
     zh: '反序列化',

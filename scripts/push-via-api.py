@@ -75,6 +75,8 @@ def git(*args):
 
 MODE = os.environ.get("MODE", "all")  # all | main | gha
 ONLY = os.environ.get("ONLY")  # space separated explicit file list, overrides MODE
+MSG = os.environ.get("MSG", "chore: update files")
+TAG = os.environ.get("TAG")  # e.g. v0.7.0 -> creates refs/tags/<TAG> on the new commit
 files = [f for f in git("ls-files").splitlines() if f]
 if ONLY:
     files = ONLY.split()
@@ -118,7 +120,7 @@ for i in range(0, len(files), BATCH):
 
 parent = api("GET", f"/repos/{REPO}/git/commits/{api('GET', f'/repos/{REPO}/git/ref/heads/{BRANCH}')['object']['sha']}")["sha"] if base_tree else None
 commit = api("POST", f"/repos/{REPO}/git/commits", {
-    "message": "fix: DevDict v0.6.1 - 修复桌面端白屏（base 改相对路径 + 跳过 SW + 更新桌面端下载引导）",
+    "message": MSG,
     "tree": tree_sha,
     "parents": [parent] if parent else [],
 })["sha"]
@@ -132,5 +134,13 @@ else:
     print("branch created")
 if base_tree and "object" not in res:
     sys.exit(f"REF UPDATE FAILED: {json.dumps(res)[:300]}")
+
+if TAG:
+    t = api("POST", f"/repos/{REPO}/git/refs", {"ref": f"refs/tags/{TAG}", "sha": commit})
+    if "ref" in t:
+        print(f"tag {TAG} created -> {commit[:8]}")
+    else:
+        print(f"TAG FAILED: {json.dumps(t)[:300]}")
+        sys.exit(1)
 
 print("DONE https://github.com/" + REPO)

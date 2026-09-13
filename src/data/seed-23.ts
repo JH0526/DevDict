@@ -230,7 +230,7 @@ export const seed23: Term[] = [
   {
     id: 'mirror',
     en: 'Mirror',
-    zh: '镜像仓库',
+    zh: '仓库镜像',
     category: 'Git',
     pro: '`git clone --mirror` 完整复制远端所有 refs、远程配置和历史，做异地备份或迁移。',
     plain: '"原样复制一份远端仓库"，连远程配置都搬过来。',

@@ -124,7 +124,7 @@ export const seed08: Term[] = [
     plain: '公司部门划分：正式产品部、研发部、各项目组、发布准备组、救火队。每个部门职责清楚，文件按固定路线流转。规矩多，但多人时不容易乱。',
     purpose: '为多版本并行、需要长期维护发布线的团队提供秩序。',
     scene: '团队制定分支规范；要同时维护多个版本；发版流程混乱需要标准化。',
-    related: ['Branch', 'Trunk-Based Development', 'PR'],
+    related: ['Branch', 'Trunk-Based Development', 'Pull Request'],
     pairs: [
       { en: 'Trunk-Based Development', rel: '主干开发是 Git Flow 的简化替代，长分支改为短分支', role: '降低合并冲突与发布周期', env: '持续交付团队、高频发布场景' },
       { en: 'CI/CD', rel: '分支模型决定流水线怎么触发、往哪部署', role: '分支与环境的映射关系', env: '流水线设计与环境管理' },
