@@ -18,7 +18,7 @@ const TABS: { key: Tab; label: string; icon: string }[] = [
 ]
 
 export default function App() {
-  const { terms, loading, refresh, updateState, addTerm, removeTerm, importTerms, updateSeed, resetAll } =
+  const { terms, loading, refresh, updateState, removeTerm, importTerms, updateSeed, resetAll } =
     useDict()
   const [needRefresh, setNeedRefresh] = useState(false)
   const [tab, setTab] = useState<Tab>('dict')
@@ -115,7 +115,7 @@ export default function App() {
             onOpen={setOpen}
           />
         )}
-        {tab === 'add' && <AddView onSave={addTerm} onToast={showToast} />}
+        {tab === 'add' && <AddView terms={terms} onSaveMany={importTerms} onToast={showToast} />}
         {tab === 'settings' && (
           <SettingsView
             terms={terms}

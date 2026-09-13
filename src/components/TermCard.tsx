@@ -21,6 +21,16 @@ export const CATEGORY_STYLE: Record<string, string> = {
   游戏: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-300',
   终端: 'bg-zinc-200 text-zinc-700 dark:bg-zinc-500/20 dark:text-zinc-300',
   环境: 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300',
+  '算法与数据结构': 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300',
+  设计模式: 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300',
+  操作系统: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
+  网络协议: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-300',
+  性能优化: 'bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300',
+  可观测性: 'bg-teal-100 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300',
+  '消息队列与缓存': 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300',
+  架构模式: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300',
+  移动开发: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
+  '编码与字符': 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
 }
 
 export const MASTERY_LABEL = ['生疏', '见过', '掌握'] as const

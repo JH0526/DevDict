@@ -23,6 +23,16 @@ import { seed21 } from './seed-21'
 import { seed22 } from './seed-22'
 import { seed23 } from './seed-23'
 import { seed24 } from './seed-24'
+import { seed25 } from './seed-25'
+import { seed26 } from './seed-26'
+import { seed27 } from './seed-27'
+import { seed28 } from './seed-28'
+import { seed29 } from './seed-29'
+import { seed30 } from './seed-30'
+import { seed31 } from './seed-31'
+import { seed32 } from './seed-32'
+import { seed33 } from './seed-33'
+import { seed34 } from './seed-34'
 import { pairsDetail1 } from './pairs-detail-1'
 import { pairsDetail2 } from './pairs-detail-2'
 
@@ -68,6 +78,16 @@ export const SEED_TERMS: Term[] = withPairsDetail([
   ...seed22,
   ...seed23,
   ...seed24,
+  ...seed25,
+  ...seed26,
+  ...seed27,
+  ...seed28,
+  ...seed29,
+  ...seed30,
+  ...seed31,
+  ...seed32,
+  ...seed33,
+  ...seed34,
 ])
 
 export const CATEGORIES = [
@@ -90,4 +110,14 @@ export const CATEGORIES = [
   '游戏',
   '终端',
   '环境',
+  '算法与数据结构',
+  '设计模式',
+  '操作系统',
+  '网络协议',
+  '性能优化',
+  '可观测性',
+  '消息队列与缓存',
+  '架构模式',
+  '移动开发',
+  '编码与字符',
 ] as const

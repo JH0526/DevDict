@@ -1,28 +1,71 @@
-import { useState } from 'react'
-import type { Term } from '../types'
+import { useMemo, useState } from 'react'
+import type { Term, Pair } from '../types'
 import { CATEGORIES } from '../data'
-import { generateTerm, loadAIConfig } from '../lib/ai'
+import { generateTerms, loadAIConfig } from '../lib/ai'
 
 interface Props {
-  onSave: (t: Term) => Promise<void>
+  terms: Term[]
+  onSaveMany: (list: Term[]) => Promise<void>
   onToast: (msg: string, ok?: boolean) => void
 }
 
-export function AddView({ onSave, onToast }: Props) {
-  const [word, setWord] = useState('')
+const MAX = 20
+
+/** 归一化：小写、去首尾空白、合并内部空白，用于查重比对 */
+function norm(s: string): string {
+  return s.trim().toLowerCase().replace(/\s+/g, ' ')
+}
+
+/** 把多行文本拆成术语词（去空、去重、保序） */
+function parseWords(raw: string): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const part of raw.split(/[\n,，、]+/)) {
+    const w = part.trim()
+    if (!w) continue
+    const k = norm(w)
+    if (seen.has(k)) continue
+    seen.add(k)
+    out.push(w)
+  }
+  return out
+}
+
+export function AddView({ terms, onSaveMany, onToast }: Props) {
+  const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
-  const [draft, setDraft] = useState<Term | null>(null)
+  const [drafts, setDrafts] = useState<Term[]>([])
+
+  // 全库已有术语词集合（en / zh / alias），用于生成前查重
+  const existing = useMemo(() => {
+    const s = new Set<string>()
+    for (const t of terms) {
+      if (t.en) s.add(norm(t.en))
+      if (t.zh) s.add(norm(t.zh))
+      for (const a of t.alias ?? []) if (a) s.add(norm(a))
+    }
+    return s
+  }, [terms])
 
   const gen = async () => {
-    const w = word.trim()
-    if (!w) return onToast('先输入要查的词')
+    const words = parseWords(input)
+    if (words.length === 0) return onToast('先输入要查的词（每行一个，最多 20 个）')
+    if (words.length > MAX) return onToast(`一次最多生成 ${MAX} 个术语词`, false)
     const cfg = loadAIConfig()
     if (!cfg.apiKey.trim()) return onToast('请先在「设置」填写 AI 接口 Key', false)
+
+    // 生成前扫描过滤：术语词典内已有的词 → 自动停止生成并提示
+    const dups = words.filter((w) => existing.has(norm(w)))
+    if (dups.length) {
+      return onToast(`术语词典内已有此术语词：${dups.join('、')}`, false)
+    }
+
     setBusy(true)
     try {
-      const t = await generateTerm(w, cfg)
-      setDraft(t)
-      onToast('生成完成，确认后保存')
+      const list = await generateTerms(words, cfg)
+      if (!list.length) throw new Error('AI 未返回有效术语')
+      setDrafts(list)
+      onToast(`生成完成 ${list.length} 条，确认后保存`)
     } catch (e) {
       onToast(e instanceof Error ? e.message : '生成失败', false)
     } finally {
@@ -30,167 +73,176 @@ export function AddView({ onSave, onToast }: Props) {
     }
   }
 
-  const save = async () => {
-    if (!draft) return
-    if (!draft.en.trim()) return onToast('英文术语不能为空', false)
-    await onSave(draft)
-    onToast('已保存到词典')
-    setDraft(null)
-    setWord('')
+  const addBlank = () => {
+    setDrafts((d) => [
+      ...d,
+      {
+        id: `u_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`,
+        en: input.trim().split(/[\n,，、]/)[0]?.trim() ?? '',
+        zh: '',
+        alias: [],
+        category: '前端',
+        pro: '',
+        plain: '',
+        scene: '',
+        related: [],
+        source: 'user',
+      },
+    ])
   }
 
-  const patch = (k: keyof Term, v: unknown) => setDraft((d) => (d ? { ...d, [k]: v } : d))
+  const update = (i: number, patch: Partial<Term>) =>
+    setDrafts((d) => d.map((t, idx) => (idx === i ? { ...t, ...patch } : t)))
+
+  const remove = (i: number) => setDrafts((d) => d.filter((_, idx) => idx !== i))
+
+  const saveAll = async () => {
+    const valid = drafts.filter((d) => d.en.trim())
+    if (!valid.length) return onToast('没有可保存的术语', false)
+    await onSaveMany(valid)
+    onToast(`已保存 ${valid.length} 条到词典`)
+    setDrafts([])
+    setInput('')
+  }
 
   return (
     <div className="h-full overflow-y-auto scroll-thin px-4 md:px-6 py-5">
       <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">添加术语</h2>
       <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-        遇到看不懂的词，丢进来，AI 生成「专业解译 + 大白话 + 中英对照」
+        遇到看不懂的词，每行一个丢进来（最多 {MAX} 个），AI 批量生成「专业解译 + 大白话 + 中英对照」。生成前会自动查重，词典里已有的词不会重复生成。
       </p>
 
-      <div className="mt-4 flex gap-2">
-        <input
-          value={word}
-          onChange={(e) => setWord(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && !busy && gen()}
-          placeholder="例如：Tree Shaking / 幂等 / MCP"
-          className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 px-4 py-3 text-[15px] text-slate-800 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:border-indigo-400"
+      <div className="mt-4">
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder={'每行一个术语，例如：\nTree Shaking\n幂等\nMCP\n乐观锁'}
+          rows={5}
+          className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 px-4 py-3 text-[15px] text-slate-800 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:border-indigo-400 resize-y"
         />
+      </div>
+
+      <div className="mt-3 flex gap-2">
         <button
           onClick={gen}
           disabled={busy}
-          className="shrink-0 px-5 rounded-xl bg-indigo-600 text-white text-sm font-medium disabled:opacity-50"
+          className="flex-1 py-3 rounded-xl bg-indigo-600 text-white text-sm font-medium disabled:opacity-50"
         >
-          {busy ? '生成中…' : 'AI 生成'}
+          {busy ? '生成中…' : 'AI 批量生成'}
+        </button>
+        <button
+          onClick={addBlank}
+          className="px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-sm"
+        >
+          ＋ 手动填
         </button>
       </div>
 
-      <button
-        onClick={() =>
-          setDraft({
-            id: `u_${Date.now().toString(36)}`,
-            en: word.trim(),
-            zh: '',
-            alias: [],
-            category: '前端',
-            pro: '',
-            plain: '',
-            scene: '',
-            related: [],
-            source: 'user',
-          })
-        }
-        className="mt-2 text-xs text-slate-400 hover:text-indigo-500"
-      >
-        ＋ 不用 AI，我自己填
-      </button>
-
-      {draft && (
-        <div className="mt-5 space-y-3">
-          <Row label="英文">
-            <input value={draft.en} onChange={(e) => patch('en', e.target.value)} className={INPUT} />
-          </Row>
-          <Row label="中文直译">
-            <input value={draft.zh} onChange={(e) => patch('zh', e.target.value)} className={INPUT} />
-          </Row>
-          <Row label="别名（逗号分隔）">
-            <input
-              value={draft.alias?.join(', ') ?? ''}
-              onChange={(e) =>
-                patch(
-                  'alias',
-                  e.target.value.split(/[,，]/).map((s) => s.trim()).filter(Boolean),
-                )
-              }
-              className={INPUT}
-            />
-          </Row>
-          <Row label="分类">
-            <select
-              value={draft.category}
-              onChange={(e) => patch('category', e.target.value)}
-              className={INPUT}
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </Row>
-          <Row label="专业解译">
-            <textarea rows={3} value={draft.pro} onChange={(e) => patch('pro', e.target.value)} className={INPUT} />
-          </Row>
-          <Row label="大白话">
-            <textarea rows={3} value={draft.plain} onChange={(e) => patch('plain', e.target.value)} className={INPUT} />
-          </Row>
-          <Row label="作用（解决什么问题）">
-            <textarea
-              rows={2}
-              value={draft.purpose ?? ''}
-              onChange={(e) => patch('purpose', e.target.value)}
-              className={INPUT}
-            />
-          </Row>
-          <Row label="出现场景">
-            <input value={draft.scene} onChange={(e) => patch('scene', e.target.value)} className={INPUT} />
-          </Row>
-          <Row label="配合术语（每行一条：术语 | 关系 | 作用 | 使用环境）">
-            <textarea
-              rows={4}
-              placeholder={
-                'Proxy | 绕开跨域的替代手段 | 开发期把请求转发成同源 | 本地 dev 调后端接口\nPreflight | CORS 的前置步骤 | 非简单请求先发 OPTIONS 探路 | 带自定义头或 JSON body 的请求'
-              }
-              defaultValue={(draft.pairs ?? [])
-                .map((p) => [p.en, p.rel, p.role, p.env].filter(Boolean).join(' | '))
-                .join('\n')}
-              onChange={(e) =>
-                patch(
-                  'pairs',
-                  e.target.value
-                    .split('\n')
-                    .map((line) => {
-                      if (!line.trim()) return null
-                      const parts = line.split('|').map((s) => s.trim())
-                      const en = parts[0]
-                      if (!en) return null
-                      return { en, rel: parts[1], role: parts[2], env: parts[3] } as {
-                        en: string
-                        rel?: string
-                        role?: string
-                        env?: string
-                      }
-                    })
-                    .filter((x): x is NonNullable<typeof x> => !!x),
-                )
-              }
-              className={INPUT}
-            />
-          </Row>
-          <Row label="关联术语（逗号分隔）">
-            <input
-              value={draft.related.join(', ')}
-              onChange={(e) =>
-                patch(
-                  'related',
-                  e.target.value.split(/[,，]/).map((s) => s.trim()).filter(Boolean),
-                )
-              }
-              className={INPUT}
-            />
-          </Row>
-
-          <div className="flex gap-2 pt-1">
-            <button onClick={save} className="flex-1 py-3 rounded-xl bg-indigo-600 text-white text-sm font-medium">
-              保存
-            </button>
-            <button
-              onClick={() => setDraft(null)}
-              className="px-5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-sm"
-            >
-              取消
-            </button>
+      {drafts.length > 0 && (
+        <div className="mt-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+              待保存草稿（{drafts.length}）
+            </span>
+            <div className="flex gap-2">
+              <button onClick={saveAll} className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium">
+                保存全部
+              </button>
+              <button
+                onClick={() => setDrafts([])}
+                className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-sm"
+              >
+                清空
+              </button>
+            </div>
           </div>
+
+          {drafts.map((d, i) => (
+            <div
+              key={d.id}
+              className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/60 dark:bg-slate-800/40 p-4 space-y-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-400">#{i + 1}</span>
+                <button
+                  onClick={() => remove(i)}
+                  className="text-xs text-rose-500 hover:text-rose-600"
+                >
+                  移除
+                </button>
+              </div>
+              <Row label="英文">
+                <input value={d.en} onChange={(e) => update(i, { en: e.target.value })} className={INPUT} />
+              </Row>
+              <Row label="中文直译">
+                <input value={d.zh} onChange={(e) => update(i, { zh: e.target.value })} className={INPUT} />
+              </Row>
+              <Row label="别名（逗号分隔）">
+                <input
+                  value={d.alias?.join(', ') ?? ''}
+                  onChange={(e) =>
+                    update(i, {
+                      alias: e.target.value.split(/[,，]/).map((s) => s.trim()).filter(Boolean),
+                    })
+                  }
+                  className={INPUT}
+                />
+              </Row>
+              <Row label="分类">
+                <select value={d.category} onChange={(e) => update(i, { category: e.target.value as Term['category'] })} className={INPUT}>
+                  {CATEGORIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </Row>
+              <Row label="专业解译">
+                <textarea rows={3} value={d.pro} onChange={(e) => update(i, { pro: e.target.value })} className={INPUT} />
+              </Row>
+              <Row label="大白话">
+                <textarea rows={3} value={d.plain} onChange={(e) => update(i, { plain: e.target.value })} className={INPUT} />
+              </Row>
+              <Row label="作用（解决什么问题）">
+                <textarea rows={2} value={d.purpose ?? ''} onChange={(e) => update(i, { purpose: e.target.value })} className={INPUT} />
+              </Row>
+              <Row label="出现场景">
+                <input value={d.scene} onChange={(e) => update(i, { scene: e.target.value })} className={INPUT} />
+              </Row>
+              <Row label="配合术语（每行：术语 | 关系 | 作用 | 使用环境）">
+                <textarea
+                  rows={4}
+                  value={(d.pairs ?? []).map((p) => [p.en, p.rel, p.role, p.env].filter(Boolean).join(' | ')).join('\n')}
+                  onChange={(e) =>
+                    update(i, {
+                      pairs: e.target.value
+                        .split('\n')
+                        .map((line) => {
+                          if (!line.trim()) return null
+                          const parts = line.split('|').map((s) => s.trim())
+                          const en = parts[0]
+                          if (!en) return null
+                          return { en, rel: parts[1], role: parts[2], env: parts[3] } as Pair
+                        })
+                        .filter((x): x is Pair => !!x),
+                    })
+                  }
+                  className={INPUT}
+                />
+              </Row>
+              <Row label="关联术语（逗号分隔）">
+                <input
+                  value={d.related.join(', ')}
+                  onChange={(e) =>
+                    update(i, {
+                      related: e.target.value.split(/[,，]/).map((s) => s.trim()).filter(Boolean),
+                    })
+                  }
+                  className={INPUT}
+                />
+              </Row>
+            </div>
+          ))}
         </div>
       )}
     </div>
