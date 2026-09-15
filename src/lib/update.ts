@@ -31,6 +31,8 @@ const cacheBust = isDesktop ? '' : `?t=${Date.now()}`
  */
 const REMOTE_BASE = 'https://cdn.jsdelivr.net/gh/JH0526/DevDict@main/public'
 const RELEASE_API = 'https://api.github.com/repos/JH0526/DevDict/releases/latest'
+// 自建托管站点：始终与最新构建同步，作为 jsDelivr 分支缓存不可靠时的兜底真源
+const SELF_HOST = 'https://devdict-30454.app.workbuddy.host'
 
 async function getJSON<T>(url: string, timeoutMs = 8000): Promise<T> {
   const ctrl = new AbortController()
@@ -68,24 +70,41 @@ export function isNewer(a: string, b: string): boolean {
   return false
 }
 
-/** 远端版本：优先完整 meta（带 changelog），取不到时用 Release tag 兜底判断是否落后 */
+/**
+ * 远端版本：并行取多源，取版本号最新者。
+ * - jsDelivr（国内可达，但 @main 分支引用会被 CDN 缓存，可能短暂滞后）
+ * - GitHub Release（releases/latest，可靠、即时，作为主兜底）
+ * - 自建托管站点（始终与最新构建同步，最终兜底真源）
+ * 关键：不再「jsDelivr 返回即采用」，而是三源取最新，避免陈旧 jsDelivr 覆盖新版本。
+ */
 async function remoteMeta(): Promise<RemoteMeta | null> {
-  const withMeta = await getJSON<RemoteMeta>(`${REMOTE_BASE}/version.json?t=${Date.now()}`)
-    .then((m) => (m?.version ? m : null))
-    .catch(() => null)
-  if (withMeta) return withMeta
-
-  // jsDelivr 取不到（未推送 / CDN 未刷新）时，用 Release tag 兜底判断是否落后
-  const rel = await getJSON<{ tag_name?: string; published_at?: string }>(RELEASE_API).catch(
-    () => null,
-  )
-  if (!rel?.tag_name) return null
-  return {
-    version: rel.tag_name.replace(/^v/i, ''),
-    seedVersion: 0,
-    buildTime: rel.published_at ?? '',
-    changelog: [],
+  const tasks = [
+    getJSON<RemoteMeta>(`${REMOTE_BASE}/version.json?t=${Date.now()}`)
+      .then((m) => (m?.version ? m : null))
+      .catch(() => null),
+    getJSON<{ tag_name?: string; published_at?: string }>(RELEASE_API)
+      .then((rel) =>
+        rel?.tag_name
+          ? {
+              version: rel.tag_name.replace(/^v/i, ''),
+              seedVersion: 0,
+              buildTime: rel.published_at ?? '',
+              changelog: [] as string[],
+            }
+          : null,
+      )
+      .catch(() => null),
+    getJSON<RemoteMeta>(`${SELF_HOST}/version.json?t=${Date.now()}`)
+      .then((m) => (m?.version ? m : null))
+      .catch(() => null),
+  ]
+  const rs = await Promise.allSettled(tasks)
+  let best: RemoteMeta | null = null
+  for (const r of rs) {
+    if (r.status !== 'fulfilled' || !r.value) continue
+    if (!best || isNewer(r.value.version, best.version)) best = r.value
   }
+  return best
 }
 
 function localMeta(): Promise<RemoteMeta> {
@@ -99,12 +118,13 @@ export async function fetchMeta(): Promise<RemoteMeta> {
   return meta
 }
 
-/** 最新词条库：本地与远端取 seedVersion 更大的那个 */
+/** 最新词条库：本地与多远端取 seedVersion 更大的那个 */
 export async function fetchSeedBundle(): Promise<SeedBundle> {
   const bundle = await best(
     [
       getJSON<SeedBundle>(`./seed-terms.json${cacheBust}`),
       getJSON<SeedBundle>(`${REMOTE_BASE}/seed-terms.json?t=${Date.now()}`, 20_000),
+      getJSON<SeedBundle>(`${SELF_HOST}/seed-terms.json?t=${Date.now()}`, 20_000),
     ],
     (a, b) => (b.version > a.version ? b : a),
   )
