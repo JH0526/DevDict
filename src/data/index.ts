@@ -33,6 +33,19 @@ import { seed31 } from './seed-31'
 import { seed32 } from './seed-32'
 import { seed33 } from './seed-33'
 import { seed34 } from './seed-34'
+import { seed35 } from './seed-35'
+import { seed36 } from './seed-36'
+import { seed37 } from './seed-37'
+import { seed38 } from './seed-38'
+import { seed39 } from './seed-39'
+import { seed40 } from './seed-40'
+import { seed41 } from './seed-41'
+import { seed42 } from './seed-42'
+import { seed43 } from './seed-43'
+import { seed44 } from './seed-44'
+import { seed45 } from './seed-45'
+import { seed46 } from './seed-46'
+import { seed47 } from './seed-47'
 import { pairsDetail1 } from './pairs-detail-1'
 import { pairsDetail2 } from './pairs-detail-2'
 
@@ -88,11 +101,25 @@ export const SEED_TERMS: Term[] = withPairsDetail([
   ...seed32,
   ...seed33,
   ...seed34,
+  ...seed35,
+  ...seed36,
+  ...seed37,
+  ...seed38,
+  ...seed39,
+  ...seed40,
+  ...seed41,
+  ...seed42,
+  ...seed43,
+  ...seed44,
+  ...seed45,
+  ...seed46,
+  ...seed47,
 ])
 
 export const CATEGORIES = [
   '前端',
   'AI',
+  'A2A',
   '后端',
   '数据库',
   '工程化',

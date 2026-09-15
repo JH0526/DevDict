@@ -2,6 +2,7 @@ export type Category =
   | '前端'
   | '后端'
   | 'AI'
+  | 'A2A'
   | '工程化'
   | 'Git'
   | '数据库'

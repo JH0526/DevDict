@@ -4,6 +4,7 @@ import { SpeakButton } from './SpeakButton'
 export const CATEGORY_STYLE: Record<string, string> = {
   前端: 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300',
   AI: 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300',
+  A2A: 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-500/15 dark:text-fuchsia-300',
   后端: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
   数据库: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
   工程化: 'bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300',
